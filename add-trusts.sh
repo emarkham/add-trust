@@ -27,11 +27,16 @@
 # define compartment-list
 COMPARTMENT_LIST=(
 example-compartment-A 
-example-compartment-B)
+example-compartment-B
+)
 
 
 # define domain-list
-DOMAIN_LIST=("aa.local" "bb.local" "cc.local")
+DOMAIN_LIST=(
+"aa.local" 
+"bb.local" 
+"cc.local"
+)
 
 
 
@@ -60,7 +65,9 @@ for COMPART in ${COMPARTMENT_LIST[@]}; do
  done
 
 if [[ FAILURE_DETECTED ]] ; then
-    printf "\e[93mFailed to create inter-forest-trusts for the following:\n"
-    printf '%s\n' "${FAILLIST[@]}"
+    printf "\e[93mEncountered an error when creating inter-forest-trust:\n"
+    if [[ $FAILLIST ]] ; then 
+      printf '%s\n' "${FAILLIST[@]}"
+    fi
     printf '\e[0m' # clear color
 fi

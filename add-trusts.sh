@@ -40,17 +40,34 @@ DOMAIN_LIST=(
 
 
 
+
+RED='\e[91m'
+GRN='\e[92m'
+BLU='\e[96m'
+YEL='\e[93m'
+NOCO='\e[0m'
+
+
+if ! ssc_loc="$(type -p "ssc")"; then
+  echo "You must have SSC installed, download from:"
+  echo "https://cdn.skyportsystems.com/SkyportSystemsRepo/skysecure-cli-1.7.0-2017_11_20_1238.noarch.rpm"
+  exit 1
+fi
+
+add_iftrust () {
+  ssc compartments add-inter-forest-trust --domain-name $1 --compartment-name $2 --force
+}
+
 for COMPART in ${COMPARTMENT_LIST[@]}; do
    for DOM in ${DOMAIN_LIST[@]}; do
-       # echo "ssc compartments add-inter-forest-trust --domain-name ${DOM} --compartment-name ${COMPART} --force"
-       printf "Adding trust for \e[96m${DOM}\e[0m to \e[92m${COMPART}\e[0m\n"
-       RESULT=$(ssc compartments add-inter-forest-trust --domain-name ${DOM} --compartment-name ${COMPART} --force)
+       printf "Adding trust for ${BLU}${DOM}\e[0m to ${GRN}${COMPART}${NOCO}\n"
+       RESULT= add_iftrust ${DOM} ${COMPART}
        # RESULT="Successfully added role Active Directory Inter-Forest Trust for compartment"
        if [[ ${RESULT} != *"Successfully added"* ]] ; then
         # Retry just once
-        printf "\e[91mretrying... \e[0m"
+        printf "${RED}retrying... $NOCO"
         sleep 5
-        RESULT=$(ssc compartments add-inter-forest-trust --domain-name ${DOM} --compartment-name ${COMPART} --force)
+        RESULT= add_iftrust ${DOM} ${COMPART}
         echo "${RESULT}"
          if [[ ${RESULT} != *"Successfully added"* ]] ; then
            FAILLIST+=(${COMPART}' : '${DOM})
@@ -65,9 +82,8 @@ for COMPART in ${COMPARTMENT_LIST[@]}; do
  done
 
 if [[ FAILURE_DETECTED ]] ; then
-    printf "\e[93mEncountered an error when creating inter-forest-trust:\n"
+    printf "${YEL}Error when creating inter-forest-trust for compartment : domain:\n"
     if [[ $FAILLIST ]] ; then 
       printf '%s\n' "${FAILLIST[@]}"
     fi
-    printf '\e[0m' # clear color
 fi
